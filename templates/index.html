@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Community Board</title>
+    <style>
+        body { font-family: sans-serif; background: #dae0e6; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .post-card { background: white; border: 1px solid #ccc; margin-bottom: 15px; border-radius: 5px; overflow: hidden; }
+        .post-header { background: #f8f9fa; padding: 10px 15px; font-size: 12px; color: #787c7e; }
+        .post-body { padding: 15px; }
+        h3 { margin: 0 0 10px 0; color: #222; }
+        .btn-create { display: block; width: 100%; text-align: center; background: #d93a00; color: white; padding: 15px; text-decoration: none; font-weight: bold; border-radius: 5px; margin-bottom: 20px; }
+        .btn-status { float: right; font-size: 12px; color: #0079d3; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💬 Community Board <a href="/status" class="btn-status">⚡ Check System</a></h1>
+        
+        <a href="/create" class="btn-create">✍️ ตั้งกระทู้ใหม่ (Create Post)</a>
+
+        {% for post in posts %}
+        <div class="post-card">
+            <div class="post-header">
+                👤 โพสต์โดย: <strong>{{ post.author }}</strong> | 🕒 เมื่อ: {{ post.timestamp }}
+            </div>
+            <div class="post-body">
+                <h3>{{ post.title }}</h3>
+                <p>{{ post.content }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
