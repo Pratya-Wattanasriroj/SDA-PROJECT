@@ -1,4 +1,3 @@
-cat <<EOF > Makefile
 build:
 	docker build -t my-web-app .
 
@@ -9,4 +8,3 @@ deploy: build
 	-docker stop \$(docker ps -aq)
 	-docker rm \$(docker ps -aq)
 	\$(MAKE) run
-EOF
