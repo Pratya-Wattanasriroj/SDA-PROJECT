@@ -9,7 +9,7 @@ app = Flask(__name__)
 posts_db = [
     {
         'id': 1,
-        'title': 'WELCOME TO PANTIP',
+        'title': 'HELLO WORLD',
         'author': 'Admin',
         'content': 'พื้นที่นี้ให้เพื่อนๆ มาโพสต์แลกเปลี่ยนความคิดเห็นกันได้เลย',
         'timestamp': '2023-10-27 10:00'
