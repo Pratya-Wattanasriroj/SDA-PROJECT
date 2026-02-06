@@ -10,113 +10,81 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
             background-color: #dae0e6; 
             margin: 0; 
-            padding-top: 48px; /* เว้นที่ให้ Navbar */
+            padding-top: 48px; 
             color: #1c1c1c;
         }
 
-        /* --- 1. Top Navbar (แถบบนสุด) --- */
+        /* Navbar */
         .navbar {
-            background-color: white;
-            height: 48px;
-            padding: 0 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            z-index: 1000;
+            background-color: white; height: 48px; padding: 0 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: fixed; top: 0; left: 0; right: 0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); z-index: 1000;
         }
         .logo { font-size: 20px; color: #ff4500; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px; }
-        .logo span { color: #1c1c1c; display: none; } /* ซ่อนชื่อในมือถือ */
-        @media (min-width: 768px) { .logo span { display: block; } }
-
+        
         .nav-search { flex-grow: 1; max-width: 600px; margin: 0 20px; }
-        .search-input {
-            width: 100%; background: #f6f7f8; border: 1px solid #edeff1;
-            border-radius: 20px; padding: 8px 15px; outline: none; font-size: 14px;
-        }
-        .search-input:focus { background: white; border-color: #0079d3; }
+        .search-input { width: 100%; background: #f6f7f8; border: 1px solid #edeff1; border-radius: 20px; padding: 8px 15px; outline: none; }
 
         .nav-right a { margin-left: 10px; text-decoration: none; font-weight: bold; font-size: 14px; }
         .btn-create { background: #1c1c1c; color: white; padding: 6px 15px; border-radius: 20px; }
-        .btn-create:hover { opacity: 0.8; }
 
-        /* --- 2. Main Layout (โครงสร้างหลัก แบ่งซ้าย-ขวา) --- */
-        .main-layout {
-            display: flex;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            gap: 24px; /* ช่องว่างระหว่าง Sidebar กับ Content */
-        }
-
-        /* --- 3. Left Sidebar (เมนูซ้าย) --- */
-        .sidebar {
-            width: 220px;
-            flex-shrink: 0; /* ห้ามหด */
-            display: none; /* ซ่อนในมือถือ */
-            position: sticky; /* ติดหนึบ */
-            top: 70px; /* ห่างจากขอบบน */
-            height: calc(100vh - 70px);
-            overflow-y: auto;
-        }
+        /* Layout */
+        .main-layout { display: flex; max-width: 1000px; margin: 0 auto; padding: 20px; gap: 24px; }
+        
+        /* Sidebar */
+        .sidebar { width: 220px; display: none; }
         @media (min-width: 900px) { .sidebar { display: block; } }
-
-        .menu-category {
-            font-size: 10px; color: #878a8c; font-weight: bold;
-            margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .menu-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 10px; color: #1c1c1c; text-decoration: none;
-            border-radius: 5px; font-size: 14px; transition: 0.2s;
-        }
+        .menu-item { display: flex; align-items: center; gap: 12px; padding: 10px; color: #1c1c1c; text-decoration: none; border-radius: 5px; font-size: 14px; }
         .menu-item:hover { background-color: #e4e6eb; }
         .menu-item.active { background-color: #f6f7f8; font-weight: bold; border-left: 3px solid #ff4500; }
-        .menu-item i { width: 20px; text-align: center; font-size: 16px; color: #1c1c1c; }
 
-        /* --- 4. Main Content (เนื้อหาตรงกลาง) --- */
+        /* Content */
         .content-area { flex-grow: 1; min-width: 0; }
         
         .post-card { 
             background: white; border: 1px solid #ccc; 
             margin-bottom: 10px; border-radius: 4px; overflow: hidden; 
-            cursor: pointer;
         }
-        .post-card:hover { border-color: #898989; }
         
-        /* Vote Column (ด้านซ้ายของการ์ด) */
-        .post-layout { display: flex; }
-        .vote-section { 
-            width: 40px; background: #f8f9fa; 
-            display: flex; flex-direction: column; align-items: center; padding-top: 8px; 
-            border-right: 1px solid #edeff1;
-        }
-        .post-main { padding: 8px 16px; width: 100%; }
+        /* Post Layout (ลบ Vote ออกแล้ว) */
+        .post-main { padding: 10px 15px; width: 100%; }
         
         .post-header { font-size: 12px; color: #787c7e; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
-        .sub-icon { width: 20px; height: 20px; border-radius: 50%; background: #0079d3; }
+        .user-icon { width: 20px; height: 20px; border-radius: 50%; background: #0079d3; }
         
         h3 { margin: 0 0 8px 0; font-size: 18px; color: #222; }
-        p { margin: 0; font-size: 14px; line-height: 21px; color: #1c1c1c; }
+        p { margin: 0; font-size: 14px; line-height: 21px; color: #1c1c1c; margin-bottom: 10px; }
         
+        /* ส่วนแสดงรูปภาพ/วิดีโอ */
+        .post-media {
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #000;
+            display: flex;
+            justify-content: center;
+        }
+        .post-media img, .post-media video {
+            max-width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+        }
+
         .post-footer { margin-top: 10px; display: flex; gap: 10px; font-size: 12px; color: #878a8c; font-weight: bold; }
-        .footer-btn { display: flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 2px; }
-        .footer-btn:hover { background: #f0f2f5; }
+        .footer-btn { padding: 5px 8px; cursor: pointer; }
+        .footer-btn:hover { background: #f0f2f5; border-radius: 2px; }
 
     </style>
 </head>
 <body>
 
     <nav class="navbar">
-        <a href="/" class="logo">
-            <i class="fab fa-reddit" style="font-size: 32px;"></i>
-            <span>reddit-clone</span>
-        </a>
+        <a href="/" class="logo"><i class="fab fa-reddit"></i> <span>Community</span></a>
         <div class="nav-search">
             <form action="/" method="GET" style="margin: 0;">
-                <input type="text" name="q" class="search-input" placeholder="Search Reddit" value="{{ request.args.get('q', '') }}">
+                <input type="text" name="q" class="search-input" placeholder="ค้นหา..." value="{{ request.args.get('q', '') }}">
             </form>
         </div>
         <div class="nav-right">
@@ -126,63 +94,41 @@
     </nav>
 
     <div class="main-layout">
-        
         <aside class="sidebar">
-            <div class="menu-category">Feeds</div>
-            
-            <a href="/" class="menu-item active">
-                <i class="fas fa-home"></i> Home
-            </a>
-            <a href="#" class="menu-item">
-                <i class="fas fa-fire-alt"></i> Popular
-            </a>
-            <a href="#" class="menu-item">
-                <i class="fas fa-globe"></i> All
-            </a>
-
-            <div class="menu-category" style="margin-top: 20px;">Other</div>
-            
-            <a href="/friends" class="menu-item">
-                <i class="fas fa-user-friends"></i> Friend's Posts
-            </a>
-            <a href="#" class="menu-item">
-                <i class="fas fa-gamepad"></i> Gaming
-            </a>
-            <a href="#" class="menu-item">
-                <i class="fas fa-laptop-code"></i> Programming
-            </a>
+            <a href="/" class="menu-item active"><i class="fas fa-home"></i> Home</a>
+            <a href="/friends" class="menu-item"><i class="fas fa-user-friends"></i> Friends</a>
         </aside>
 
         <main class="content-area">
-            
             {% for post in posts %}
             <div class="post-card">
-                <div class="post-layout">
-                    <div class="vote-section">
-                        <i class="fas fa-arrow-up" style="color: #878a8c;"></i>
-                        <span style="font-weight: bold; font-size: 12px; margin: 5px 0;">{{ post.id + 10 }}</span> <i class="fas fa-arrow-down" style="color: #878a8c;"></i>
+                <div class="post-main">
+                    <div class="post-header">
+                        <div class="user-icon"></div>
+                        <strong style="color: #1c1c1c;">{{ post.author }}</strong>
+                        <span>• {{ post.timestamp }}</span>
                     </div>
 
-                    <div class="post-main">
-                        <div class="post-header">
-                            <div class="sub-icon"></div>
-                            <strong>r/{{ post.author }}</strong>
-                            <span>• Posted by u/{{ post.author }}</span>
-                            <span>• {{ post.timestamp }}</span>
-                        </div>
-                        <h3>{{ post.title }}</h3>
-                        <p>{{ post.content }}</p>
-                        
-                        <div class="post-footer">
-                            <div class="footer-btn"><i class="far fa-comment-alt"></i> 25 Comments</div>
-                            <div class="footer-btn"><i class="fas fa-share"></i> Share</div>
-                            <div class="footer-btn"><i class="far fa-bookmark"></i> Save</div>
-                        </div>
+                    <h3>{{ post.title }}</h3>
+                    <p>{{ post.content }}</p>
+
+                    {% if post.media %}
+                    <div class="post-media">
+                        {% if 'youtube.com' in post.media or 'youtu.be' in post.media %}
+                            <iframe width="100%" height="350" src="{{ post.media.replace('watch?v=', 'embed/') }}" frameborder="0" allowfullscreen></iframe>
+                        {% else %}
+                            <img src="{{ post.media }}" onerror="this.style.display='none'">
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="post-footer">
+                        <div class="footer-btn"><i class="far fa-comment-alt"></i> Comments</div>
+                        <div class="footer-btn"><i class="fas fa-share"></i> Share</div>
                     </div>
                 </div>
             </div>
             {% endfor %}
-            
         </main>
     </div>
 
