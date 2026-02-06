@@ -1,7 +1,23 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for
 from datetime import datetime, timedelta
+from werkzeug.utils import secure_filename # ตัวช่วยตั้งชื่อไฟล์ให้ปลอดภัย
 
 app = Flask(__name__)
+
+# กำหนดโฟลเดอร์สำหรับเก็บไฟล์อัปโหลด
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mov', 'avi'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# สร้างโฟลเดอร์รอไว้เลย (ถ้ายังไม่มี)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# ฟังก์ชันเช็คสกุลไฟล์
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # จำลอง Database
 posts_db = [
@@ -9,8 +25,9 @@ posts_db = [
         'id': 1,
         'title': 'ยินดีต้อนรับสู่ Webboard!',
         'author': 'Admin',
-        'content': 'โพสต์รูปและวิดีโอได้แล้วนะ ลองดูสิ!',
-        'media': 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcG96Y3lmaWZqNmJxcWc0ZDV6bm9uY3F6Z2g0bm14Z2g0bm14Z2g0biZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0MYt5jPR6QX5pnqM/giphy.gif',
+        'content': 'ระบบรองรับการอัปโหลดไฟล์แล้วนะ',
+        'media': '', # ไม่มีรูป
+        'media_type': 'none',
         'timestamp': '2025-01-01 12:00'
     }
 ]
@@ -23,14 +40,11 @@ def home():
         posts_to_show = filtered_posts
     else:
         posts_to_show = posts_db
-    
     return render_template('index.html', posts=reversed(posts_to_show))
 
 @app.route('/friends')
 def friends_page():
-    # หน้าเพื่อน (ตัวอย่าง)
-    friend_posts = []
-    return render_template('index.html', posts=friend_posts)
+    return render_template('index.html', posts=[])
 
 @app.route('/create', methods=['GET', 'POST'])
 def create_post():
@@ -38,9 +52,28 @@ def create_post():
         title = request.form['title']
         author = request.form['author']
         content = request.form['content']
-        media = request.form['media'] # รับลิงก์รูป/วิดีโอ
         
-        # คำนวณเวลาไทย (UTC+7)
+        # --- ส่วนจัดการไฟล์อัปโหลด ---
+        media_filename = None
+        media_type = 'none'
+
+        if 'file' in request.files:
+            file = request.files['file']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                # บันทึกไฟล์ลงเครื่อง
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                
+                # เก็บ Path ของไฟล์ไว้ใน DB
+                media_filename = f'uploads/{filename}'
+                
+                # เช็คว่าเป็นวิดีโอหรือไม่
+                if filename.lower().endswith(('.mp4', '.mov', '.avi')):
+                    media_type = 'video'
+                else:
+                    media_type = 'image'
+
+        # คำนวณเวลาไทย
         thai_time = datetime.utcnow() + timedelta(hours=7)
         formatted_time = thai_time.strftime("%d/%m/%Y %H:%M")
 
@@ -49,7 +82,8 @@ def create_post():
             'title': title,
             'author': author,
             'content': content,
-            'media': media,
+            'media': media_filename,     # เก็บชื่อไฟล์
+            'media_type': media_type,    # เก็บประเภท (รูป/วิดีโอ)
             'timestamp': formatted_time
         }
         posts_db.append(new_post)
@@ -58,7 +92,6 @@ def create_post():
 
 @app.route('/status')
 def status_check():
-    # ใส่ลิงก์ Cloud Run ของคุณที่นี่
     CLOUD_FUNCTION_URL = "https://check-status-final-88358153370.asia-southeast1.run.app"
     return redirect(CLOUD_FUNCTION_URL)
 

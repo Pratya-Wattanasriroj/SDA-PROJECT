@@ -47,8 +47,8 @@
             margin-bottom: 10px; border-radius: 4px; overflow: hidden; 
         }
         
-        /* Post Layout (ลบ Vote ออกแล้ว) */
-        .post-main { padding: 10px 15px; width: 100%; }
+        /* Post Content */
+        .post-main { padding: 10px 15px; width: 100%; box-sizing: border-box; }
         
         .post-header { font-size: 12px; color: #787c7e; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
         .user-icon { width: 20px; height: 20px; border-radius: 50%; background: #0079d3; }
@@ -60,20 +60,25 @@
         .post-media {
             width: 100%;
             margin-top: 10px;
+            background: #000;
             border-radius: 4px;
             overflow: hidden;
-            background: #000;
             display: flex;
             justify-content: center;
+            align-items: center;
         }
-        .post-media img, .post-media video {
+        .post-media img {
             max-width: 100%;
             max-height: 500px;
             object-fit: contain;
         }
+        .post-media video {
+            width: 100%;
+            max-height: 500px;
+        }
 
         .post-footer { margin-top: 10px; display: flex; gap: 10px; font-size: 12px; color: #878a8c; font-weight: bold; }
-        .footer-btn { padding: 5px 8px; cursor: pointer; }
+        .footer-btn { padding: 5px 8px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         .footer-btn:hover { background: #f0f2f5; border-radius: 2px; }
 
     </style>
@@ -114,10 +119,13 @@
 
                     {% if post.media %}
                     <div class="post-media">
-                        {% if 'youtube.com' in post.media or 'youtu.be' in post.media %}
-                            <iframe width="100%" height="350" src="{{ post.media.replace('watch?v=', 'embed/') }}" frameborder="0" allowfullscreen></iframe>
+                        {% if post.media_type == 'video' %}
+                            <video controls>
+                                <source src="{{ url_for('static', filename=post.media) }}" type="video/mp4">
+                                Browser ของคุณไม่รองรับวิดีโอ
+                            </video>
                         {% else %}
-                            <img src="{{ post.media }}" onerror="this.style.display='none'">
+                            <img src="{{ url_for('static', filename=post.media) }}" alt="Post Image">
                         {% endif %}
                     </div>
                     {% endif %}

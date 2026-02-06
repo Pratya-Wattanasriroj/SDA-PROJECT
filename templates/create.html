@@ -5,34 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ตั้งกระทู้ใหม่</title>
     <style>
-        body { font-family: sans-serif; background: #dae0e6; padding: 20px; display: flex; justify-content: center; }
-        .form-container { background: white; padding: 30px; width: 100%; max-width: 500px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        input, textarea { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #0079d3; color: white; border: none; font-weight: bold; border-radius: 20px; cursor: pointer; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #dae0e6; padding: 20px; display: flex; justify-content: center; }
+        .form-container { background: white; padding: 30px; width: 100%; max-width: 600px; border-radius: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        label { font-weight: bold; display: block; margin-bottom: 5px; color: #1c1c1c; }
+        input[type="text"], textarea { width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+        input[type="file"] { margin-bottom: 20px; }
+        
+        button { width: 100%; padding: 12px; background: #0079d3; color: white; border: none; font-weight: bold; border-radius: 20px; cursor: pointer; font-size: 16px; transition: 0.2s; }
         button:hover { background: #005fa3; }
-        h2 { text-align: center; color: #333; }
-        .back-link { display: block; text-align: center; margin-top: 15px; color: #666; text-decoration: none; }
+        
+        h2 { text-align: left; color: #1c1c1c; border-bottom: 1px solid #edeff1; padding-bottom: 10px; margin-top: 0; }
+        .back-link { display: block; text-align: center; margin-top: 20px; color: #666; text-decoration: none; font-size: 14px; }
+        .back-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
     <div class="form-container">
         <h2>📝 สร้างโพสต์ใหม่</h2>
-        <form action="/create" method="POST">
-            <label>หัวข้อ:</label>
-            <input type="text" name="title" required placeholder="เช่น วันนี้กินอะไรดี?">
+        
+        <form action="/create" method="POST" enctype="multipart/form-data">
             
-            <label>ชื่อของคุณ:</label>
-            <input type="text" name="author" required placeholder="ใส่ชื่อเล่นได้เลย">
+            <label>หัวข้อเรื่อง:</label>
+            <input type="text" name="title" required placeholder="หัวข้อน่าสนใจ...">
+            
+            <label>ชื่อของคุณ (Username):</label>
+            <input type="text" name="author" required placeholder="ไม่ต้องมี u/ นำหน้า">
             
             <label>เนื้อหา:</label>
-            <textarea name="content" rows="4" required placeholder="เล่าเรื่องราวของคุณ..."></textarea>
+            <textarea name="content" rows="6" required placeholder="เล่าเรื่องราวของคุณ..."></textarea>
             
-            <label>ลิงก์รูปภาพ หรือ วิดีโอ (Optional):</label>
-            <input type="text" name="media" placeholder="แปะ URL รูป (.jpg/.png) หรือลิงก์ YouTube ที่นี่">
+            <label>📷 อัปโหลดรูปภาพ หรือ วิดีโอ:</label>
+            <input type="file" name="file" accept="image/*,video/*">
             
-            <button type="submit">โพสต์เลย</button>
+            <button type="submit">โพสต์เลย (Post)</button>
         </form>
-        <a href="/" class="back-link">← ยกเลิก</a>
+        
+        <a href="/" class="back-link">ยกเลิก และกลับไปหน้าหลัก</a>
     </div>
 </body>
 </html>
