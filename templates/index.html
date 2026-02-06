@@ -6,7 +6,7 @@
     <title>Community Board</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* CSS หลัก */
+        /* --- CSS หลัก --- */
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #dae0e6; margin: 0; padding-top: 48px; color: #1c1c1c; }
         
         /* Navbar */
@@ -37,16 +37,75 @@
         .footer-btn { padding: 5px 8px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         .footer-btn:hover { background: #f0f2f5; border-radius: 2px; }
 
-        /* Carousel Style */
-        .carousel-container { position: relative; background: #000; width: 100%; height: 400px; display: flex; align-items: center; justify-content: center; border-radius: 4px; overflow: hidden; margin-top: 10px; }
-        .carousel-slide { display: none; width: 100%; height: 100%; text-align: center; }
-        .carousel-slide.active { display: flex; justify-content: center; align-items: center; }
-        .carousel-slide img, .carousel-slide video { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .prev-btn, .next-btn { position: absolute; top: 50%; transform: translateY(-50%); background-color: rgba(255, 255, 255, 0.8); color: #1c1c1c; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 18px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; opacity: 0.6; transition: 0.2s; }
+        /* --- CSS สำหรับ Gallery Slider (Carousel) --- */
+        .carousel-container {
+            position: relative;
+            background: #000;
+            width: 100%;
+            height: 400px; /* ความสูงของกรอบรูป */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .carousel-slide {
+            display: none; /* ซ่อนทุกรูปก่อน */
+            width: 100%;
+            height: 100%;
+            text-align: center;
+        }
+        
+        .carousel-slide.active {
+            display: flex; /* แสดงเฉพาะรูปที่ Active */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .carousel-slide img, .carousel-slide video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* ให้รูปไม่เบี้ยว */
+        }
+
+        /* ปุ่มลูกศร ซ้าย-ขวา */
+        .prev-btn, .next-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(255, 255, 255, 0.8);
+            color: #1c1c1c;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.6;
+            transition: 0.2s;
+        }
         .prev-btn:hover, .next-btn:hover { opacity: 1; background: white; }
         .prev-btn { left: 10px; }
         .next-btn { right: 10px; }
-        .image-counter { position: absolute; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.6); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; z-index: 5; }
+
+        /* ตัวเลขบอกจำนวนรูป (1/3) */
+        .image-counter {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            z-index: 5;
+        }
     </style>
 </head>
 <body>
@@ -124,26 +183,31 @@
 
     <script>
         function moveSlide(postId, direction) {
+            // หา Container ของโพสต์นั้น
             const container = document.getElementById('carousel-' + postId);
-            if (!container) return; // ป้องกัน error ถ้าหาไม่เจอ
-
             const slides = container.getElementsByClassName('carousel-slide');
             const counter = container.querySelector('.current-index');
             
             let activeIndex = 0;
+
+            // หาว่ารูปไหนเปิดอยู่
             for (let i = 0; i < slides.length; i++) {
                 if (slides[i].classList.contains('active')) {
                     activeIndex = i;
-                    slides[i].classList.remove('active');
+                    slides[i].classList.remove('active'); // ซ่อนรูปเดิม
                     break;
                 }
             }
 
+            // คำนวณรูปถัดไป (วนลูปได้)
             let newIndex = activeIndex + direction;
-            if (newIndex >= slides.length) newIndex = 0;
-            if (newIndex < 0) newIndex = slides.length - 1;
+            if (newIndex >= slides.length) newIndex = 0; // ถ้าเกินรูปสุดท้าย กลับไปรูปแรก
+            if (newIndex < 0) newIndex = slides.length - 1; // ถ้าถอยหลังรูปแรก ไปรูปสุดท้าย
 
+            // โชว์รูปใหม่
             slides[newIndex].classList.add('active');
+            
+            // อัปเดตตัวเลข (1/3)
             if(counter) counter.innerText = newIndex + 1;
         }
     </script>
