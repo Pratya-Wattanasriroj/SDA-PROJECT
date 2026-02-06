@@ -6,81 +6,47 @@
     <title>Community Board</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
-            background-color: #dae0e6; 
-            margin: 0; 
-            padding-top: 48px; 
-            color: #1c1c1c;
-        }
-
-        /* Navbar */
-        .navbar {
-            background-color: white; height: 48px; padding: 0 20px;
-            display: flex; align-items: center; justify-content: space-between;
-            position: fixed; top: 0; left: 0; right: 0;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05); z-index: 1000;
-        }
-        .logo { font-size: 20px; color: #ff4500; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        /* CSS หลัก */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #dae0e6; margin: 0; padding-top: 48px; color: #1c1c1c; }
         
+        /* Navbar */
+        .navbar { background-color: white; height: 48px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); z-index: 1000; }
+        .logo { font-size: 20px; color: #ff4500; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px; }
         .nav-search { flex-grow: 1; max-width: 600px; margin: 0 20px; }
         .search-input { width: 100%; background: #f6f7f8; border: 1px solid #edeff1; border-radius: 20px; padding: 8px 15px; outline: none; }
-
         .nav-right a { margin-left: 10px; text-decoration: none; font-weight: bold; font-size: 14px; }
         .btn-create { background: #1c1c1c; color: white; padding: 6px 15px; border-radius: 20px; }
-
+        
         /* Layout */
         .main-layout { display: flex; max-width: 1000px; margin: 0 auto; padding: 20px; gap: 24px; }
-        
-        /* Sidebar */
         .sidebar { width: 220px; display: none; }
         @media (min-width: 900px) { .sidebar { display: block; } }
         .menu-item { display: flex; align-items: center; gap: 12px; padding: 10px; color: #1c1c1c; text-decoration: none; border-radius: 5px; font-size: 14px; }
         .menu-item:hover { background-color: #e4e6eb; }
         .menu-item.active { background-color: #f6f7f8; font-weight: bold; border-left: 3px solid #ff4500; }
-
+        
         /* Content */
         .content-area { flex-grow: 1; min-width: 0; }
-        
-        .post-card { 
-            background: white; border: 1px solid #ccc; 
-            margin-bottom: 10px; border-radius: 4px; overflow: hidden; 
-        }
-        
-        /* Post Content */
+        .post-card { background: white; border: 1px solid #ccc; margin-bottom: 10px; border-radius: 4px; overflow: hidden; }
         .post-main { padding: 10px 15px; width: 100%; box-sizing: border-box; }
-        
         .post-header { font-size: 12px; color: #787c7e; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
         .user-icon { width: 20px; height: 20px; border-radius: 50%; background: #0079d3; }
-        
         h3 { margin: 0 0 8px 0; font-size: 18px; color: #222; }
         p { margin: 0; font-size: 14px; line-height: 21px; color: #1c1c1c; margin-bottom: 10px; }
-        
-        /* ส่วนแสดงรูปภาพ/วิดีโอ */
-        .post-media {
-            width: 100%;
-            margin-top: 10px;
-            background: #000;
-            border-radius: 4px;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .post-media img {
-            max-width: 100%;
-            max-height: 500px;
-            object-fit: contain;
-        }
-        .post-media video {
-            width: 100%;
-            max-height: 500px;
-        }
-
         .post-footer { margin-top: 10px; display: flex; gap: 10px; font-size: 12px; color: #878a8c; font-weight: bold; }
         .footer-btn { padding: 5px 8px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         .footer-btn:hover { background: #f0f2f5; border-radius: 2px; }
 
+        /* Carousel Style */
+        .carousel-container { position: relative; background: #000; width: 100%; height: 400px; display: flex; align-items: center; justify-content: center; border-radius: 4px; overflow: hidden; margin-top: 10px; }
+        .carousel-slide { display: none; width: 100%; height: 100%; text-align: center; }
+        .carousel-slide.active { display: flex; justify-content: center; align-items: center; }
+        .carousel-slide img, .carousel-slide video { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .prev-btn, .next-btn { position: absolute; top: 50%; transform: translateY(-50%); background-color: rgba(255, 255, 255, 0.8); color: #1c1c1c; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 18px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; opacity: 0.6; transition: 0.2s; }
+        .prev-btn:hover, .next-btn:hover { opacity: 1; background: white; }
+        .prev-btn { left: 10px; }
+        .next-btn { right: 10px; }
+        .image-counter { position: absolute; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.6); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; z-index: 5; }
     </style>
 </head>
 <body>
@@ -117,15 +83,31 @@
                     <h3>{{ post.title }}</h3>
                     <p>{{ post.content }}</p>
 
-                    {% if post.media %}
-                    <div class="post-media">
-                        {% if post.media_type == 'video' %}
-                            <video controls>
-                                <source src="{{ url_for('static', filename=post.media) }}" type="video/mp4">
-                                Browser ของคุณไม่รองรับวิดีโอ
-                            </video>
-                        {% else %}
-                            <img src="{{ url_for('static', filename=post.media) }}" alt="Post Image">
+                    {% if post.media_list and post.media_list|length > 0 %}
+                    <div class="carousel-container" id="carousel-{{ post.id }}">
+                        
+                        <div class="image-counter">
+                            <span class="current-index">1</span> / {{ post.media_list|length }}
+                        </div>
+
+                        {% for media in post.media_list %}
+                        <div class="carousel-slide {% if loop.index0 == 0 %}active{% endif %}">
+                            {% if media.type == 'video' %}
+                                <video controls>
+                                    <source src="{{ url_for('static', filename=media.filename) }}" type="video/mp4">
+                                </video>
+                            {% else %}
+                                <img src="{{ url_for('static', filename=media.filename) }}" 
+                                     onclick="window.open(this.src, '_blank')" 
+                                     style="cursor: zoom-in;" 
+                                     title="คลิกเพื่อดูรูปใหญ่">
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        {% if post.media_list|length > 1 %}
+                            <button class="prev-btn" onclick="moveSlide({{ post.id }}, -1)"><i class="fas fa-chevron-left"></i></button>
+                            <button class="next-btn" onclick="moveSlide({{ post.id }}, 1)"><i class="fas fa-chevron-right"></i></button>
                         {% endif %}
                     </div>
                     {% endif %}
@@ -139,6 +121,32 @@
             {% endfor %}
         </main>
     </div>
+
+    <script>
+        function moveSlide(postId, direction) {
+            const container = document.getElementById('carousel-' + postId);
+            if (!container) return; // ป้องกัน error ถ้าหาไม่เจอ
+
+            const slides = container.getElementsByClassName('carousel-slide');
+            const counter = container.querySelector('.current-index');
+            
+            let activeIndex = 0;
+            for (let i = 0; i < slides.length; i++) {
+                if (slides[i].classList.contains('active')) {
+                    activeIndex = i;
+                    slides[i].classList.remove('active');
+                    break;
+                }
+            }
+
+            let newIndex = activeIndex + direction;
+            if (newIndex >= slides.length) newIndex = 0;
+            if (newIndex < 0) newIndex = slides.length - 1;
+
+            slides[newIndex].classList.add('active');
+            if(counter) counter.innerText = newIndex + 1;
+        }
+    </script>
 
 </body>
 </html>
