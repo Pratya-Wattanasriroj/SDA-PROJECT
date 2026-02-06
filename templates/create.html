@@ -18,18 +18,21 @@
     <div class="form-container">
         <h2>📝 สร้างโพสต์ใหม่</h2>
         <form action="/create" method="POST">
-            <label>หัวข้อเรื่อง:</label>
+            <label>หัวข้อ:</label>
             <input type="text" name="title" required placeholder="เช่น วันนี้กินอะไรดี?">
             
             <label>ชื่อของคุณ:</label>
-            <input type="text" name="author" required placeholder="นามแฝง">
+            <input type="text" name="author" required placeholder="ใส่ชื่อเล่นได้เลย">
             
             <label>เนื้อหา:</label>
-            <textarea name="content" rows="5" required placeholder="เล่าเรื่องราวของคุณ..."></textarea>
+            <textarea name="content" rows="4" required placeholder="เล่าเรื่องราวของคุณ..."></textarea>
             
-            <button type="submit">โพสต์เลย (Post)</button>
+            <label>ลิงก์รูปภาพ หรือ วิดีโอ (Optional):</label>
+            <input type="text" name="media" placeholder="แปะ URL รูป (.jpg/.png) หรือลิงก์ YouTube ที่นี่">
+            
+            <button type="submit">โพสต์เลย</button>
         </form>
-        <a href="/" class="back-link">← ยกเลิก กลับไปหน้าหลัก</a>
+        <a href="/" class="back-link">← ยกเลิก</a>
     </div>
 </body>
 </html>
