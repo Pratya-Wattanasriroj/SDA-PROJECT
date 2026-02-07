@@ -54,27 +54,30 @@ def allowed_file(filename):
 
 @app.route('/')
 def home():
-    # ดึงข้อมูลจาก Database
     posts = Post.query.order_by(Post.id.desc()).all()
     
-    # วนลูปกระทู้เพื่อเตรียมไฟล์ (Pre-process)
+    # วิดีโอที่รองรับ (เพิ่มให้เยอะขึ้น)
+    video_extensions = ('.mp4', '.mov', '.avi', '.wmv', '.flv', '.mkv', '.webm', '.mpeg', '.mpg', '.3gp')
+
     for post in posts:
-        post.struct_media = [] # สร้างตัวแปรใหม่สำหรับเก็บข้อมูลไฟล์ที่จัดระเบียบแล้ว
+        post.struct_media = []
         
         if post.media_list:
-            # แยกไฟล์ด้วยลูกน้ำ
             file_paths = post.media_list.split(',')
             
             for path in file_paths:
-                path = path.strip() # ลบช่องว่างหน้าหลังออก (กันเหนียว)
-                if not path: continue # ถ้าเป็นค่าว่างให้ข้ามไป
+                path = path.strip()
+                if not path: continue
                 
-                # เช็คประเภทไฟล์ตรงนี้เลย (Python แม่นยำที่สุด)
+                # เช็คประเภทไฟล์
                 m_type = 'image'
-                if path.lower().endswith(('.mp4', '.mov', '.avi')):
+                if path.lower().endswith(video_extensions):
                     m_type = 'video'
                 
-                # เก็บข้อมูลแบบมีโครงสร้าง
+                # --- [DEBUG] พิมพ์บอกใน Terminal ว่าไฟล์นี้คืออะไร ---
+                print(f"DEBUG CHECK: ไฟล์ {path} ถูกมองว่าเป็น -> {m_type}")
+                # ------------------------------------------------
+                
                 post.struct_media.append({
                     'path': path,
                     'type': m_type

@@ -6,7 +6,7 @@
     <title>Community Board</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* CSS เดิมทั้งหมด */
+        /* CSS เหมือนเดิม */
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #dae0e6; margin: 0; padding-top: 48px; color: #1c1c1c; }
         .navbar { background-color: white; height: 48px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); z-index: 1000; }
         .logo { font-size: 20px; color: #ff4500; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px; }
@@ -36,7 +36,6 @@
         .footer-btn { padding: 5px 8px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         .footer-btn:hover { background: #f0f2f5; border-radius: 2px; }
 
-        /* Carousel CSS */
         .carousel-container { position: relative; background: #000; width: 100%; height: 400px; display: flex; align-items: center; justify-content: center; border-radius: 4px; overflow: hidden; margin-top: 10px; }
         .carousel-slide { display: none; width: 100%; height: 100%; text-align: center; }
         .carousel-slide.active { display: flex; justify-content: center; align-items: center; }
@@ -102,7 +101,7 @@
                             {% if media.type == 'video' %}
                                 <video controls preload="metadata" style="max-height: 400px; width: 100%;">
                                     <source src="{{ url_for('static', filename=media.path) }}" type="video/mp4">
-                                    Browser ของคุณไม่รองรับวิดีโอ
+                                    Your browser does not support the video tag.
                                 </video>
                             {% else %}
                                 <img src="{{ url_for('static', filename=media.path) }}" 
@@ -110,12 +109,13 @@
                                      style="cursor: zoom-in;" 
                                      title="คลิกเพื่อดูรูปใหญ่">
                             {% endif %}
-                        </div>
+                            
+                            </div>
                         {% endfor %}
 
                         {% if post.struct_media|length > 1 %}
-                            <button class="prev-btn" onclick="moveSlide({{ post.id }}, -1)"><i class="fas fa-chevron-left"></i></button>
-                            <button class="next-btn" onclick="moveSlide({{ post.id }}, 1)"><i class="fas fa-chevron-right"></i></button>
+                            <button class="prev-btn" data-id="{{ post.id }}" onclick="moveSlide(this.dataset.id, -1)"><i class="fas fa-chevron-left"></i></button>
+                            <button class="next-btn" data-id="{{ post.id }}" onclick="moveSlide(this.dataset.id, 1)"><i class="fas fa-chevron-right"></i></button>
                         {% endif %}
                     </div>
                     {% endif %}
