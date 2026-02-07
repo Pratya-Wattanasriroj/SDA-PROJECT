@@ -6,23 +6,18 @@
     <title>Community Board</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* --- CSS หลัก --- */
+        /* CSS เดิมทั้งหมด */
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #dae0e6; margin: 0; padding-top: 48px; color: #1c1c1c; }
-        
-        /* Navbar */
         .navbar { background-color: white; height: 48px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); z-index: 1000; }
         .logo { font-size: 20px; color: #ff4500; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px; }
         .nav-search { flex-grow: 1; max-width: 600px; margin: 0 20px; }
         .search-input { width: 100%; background: #f6f7f8; border: 1px solid #edeff1; border-radius: 20px; padding: 8px 15px; outline: none; }
-        
-        /* Nav Right */
         .nav-right { display: flex; align-items: center; gap: 15px; }
         .nav-right a { text-decoration: none; font-weight: bold; font-size: 14px; }
         .btn-create { background: #1c1c1c; color: white; padding: 6px 15px; border-radius: 20px; }
         .btn-login { background: white; color: #0079d3; border: 1px solid #0079d3; padding: 5px 15px; border-radius: 20px; }
         .btn-login:hover { background: #f5fafd; }
         
-        /* Layout */
         .main-layout { display: flex; max-width: 1000px; margin: 0 auto; padding: 20px; gap: 24px; }
         .sidebar { width: 220px; display: none; }
         @media (min-width: 900px) { .sidebar { display: block; } }
@@ -30,7 +25,6 @@
         .menu-item:hover { background-color: #e4e6eb; }
         .menu-item.active { background-color: #f6f7f8; font-weight: bold; border-left: 3px solid #ff4500; }
         
-        /* Content */
         .content-area { flex-grow: 1; min-width: 0; }
         .post-card { background: white; border: 1px solid #ccc; margin-bottom: 10px; border-radius: 4px; overflow: hidden; }
         .post-main { padding: 10px 15px; width: 100%; box-sizing: border-box; }
@@ -42,7 +36,7 @@
         .footer-btn { padding: 5px 8px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         .footer-btn:hover { background: #f0f2f5; border-radius: 2px; }
 
-        /* --- CSS สำหรับ Gallery Slider (Carousel) --- */
+        /* Carousel CSS */
         .carousel-container { position: relative; background: #000; width: 100%; height: 400px; display: flex; align-items: center; justify-content: center; border-radius: 4px; overflow: hidden; margin-top: 10px; }
         .carousel-slide { display: none; width: 100%; height: 100%; text-align: center; }
         .carousel-slide.active { display: flex; justify-content: center; align-items: center; }
@@ -63,10 +57,8 @@
                 <input type="text" name="q" class="search-input" placeholder="ค้นหา..." value="{{ request.args.get('q', '') }}">
             </form>
         </div>
-        
         <div class="nav-right">
             <a href="/status" target="_blank" style="color: #0079d3;"><i class="fas fa-bolt"></i> System</a>
-            
             {% if current_user.is_authenticated %}
                 <span style="font-weight: bold; color: #1c1c1c; margin: 0 5px;">
                     👤 {{ current_user.username }}
@@ -98,22 +90,22 @@
                     <h3>{{ post.title }}</h3>
                     <p>{{ post.content }}</p>
 
-                    {% if post.media_files and post.media_files|length > 0 %}
+                    {% if post.struct_media and post.struct_media|length > 0 %}
                     <div class="carousel-container" id="carousel-{{ post.id }}">
                         
                         <div class="image-counter">
-                            <span class="current-index">1</span> / {{ post.media_files|length }}
+                            <span class="current-index">1</span> / {{ post.struct_media|length }}
                         </div>
 
-                        {% for media_path in post.media_files %}
+                        {% for media in post.struct_media %}
                         <div class="carousel-slide {% if loop.index0 == 0 %}active{% endif %}">
-                            {% if media_path.lower().endswith('.mp4') or media_path.lower().endswith('.mov') or media_path.lower().endswith('.avi') %}
+                            {% if media.type == 'video' %}
                                 <video controls preload="metadata" style="max-height: 400px; width: 100%;">
-                                    <source src="{{ url_for('static', filename=media_path) }}" type="video/mp4">
+                                    <source src="{{ url_for('static', filename=media.path) }}" type="video/mp4">
                                     Browser ของคุณไม่รองรับวิดีโอ
                                 </video>
                             {% else %}
-                                <img src="{{ url_for('static', filename=media_path) }}" 
+                                <img src="{{ url_for('static', filename=media.path) }}" 
                                      onclick="window.open(this.src, '_blank')" 
                                      style="cursor: zoom-in;" 
                                      title="คลิกเพื่อดูรูปใหญ่">
@@ -121,7 +113,7 @@
                         </div>
                         {% endfor %}
 
-                        {% if post.media_files|length > 1 %}
+                        {% if post.struct_media|length > 1 %}
                             <button class="prev-btn" onclick="moveSlide({{ post.id }}, -1)"><i class="fas fa-chevron-left"></i></button>
                             <button class="next-btn" onclick="moveSlide({{ post.id }}, 1)"><i class="fas fa-chevron-right"></i></button>
                         {% endif %}
@@ -141,13 +133,12 @@
     <script>
         function moveSlide(postId, direction) {
             const container = document.getElementById('carousel-' + postId);
-            if (!container) return; // ป้องกัน error
+            if (!container) return; 
             
             const slides = container.getElementsByClassName('carousel-slide');
             const counter = container.querySelector('.current-index');
             
             let activeIndex = 0;
-
             for (let i = 0; i < slides.length; i++) {
                 if (slides[i].classList.contains('active')) {
                     activeIndex = i;
@@ -161,7 +152,6 @@
             if (newIndex < 0) newIndex = slides.length - 1;
 
             slides[newIndex].classList.add('active');
-            
             if(counter) counter.innerText = newIndex + 1;
         }
     </script>
