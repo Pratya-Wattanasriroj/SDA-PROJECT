@@ -54,15 +54,33 @@ def allowed_file(filename):
 
 @app.route('/')
 def home():
-    # ดึงข้อมูลจาก Database แทน List
+    # ดึงข้อมูลจาก Database
     posts = Post.query.order_by(Post.id.desc()).all()
     
-    # แปลง media_list กลับเป็น List (เพราะใน DB เก็บเป็น String ยาวๆ)
+    # วนลูปกระทู้เพื่อเตรียมไฟล์ (Pre-process)
     for post in posts:
+        post.struct_media = [] # สร้างตัวแปรใหม่สำหรับเก็บข้อมูลไฟล์ที่จัดระเบียบแล้ว
+        
         if post.media_list:
-            post.media_files = post.media_list.split(',')
+            # แยกไฟล์ด้วยลูกน้ำ
+            file_paths = post.media_list.split(',')
+            
+            for path in file_paths:
+                path = path.strip() # ลบช่องว่างหน้าหลังออก (กันเหนียว)
+                if not path: continue # ถ้าเป็นค่าว่างให้ข้ามไป
+                
+                # เช็คประเภทไฟล์ตรงนี้เลย (Python แม่นยำที่สุด)
+                m_type = 'image'
+                if path.lower().endswith(('.mp4', '.mov', '.avi')):
+                    m_type = 'video'
+                
+                # เก็บข้อมูลแบบมีโครงสร้าง
+                post.struct_media.append({
+                    'path': path,
+                    'type': m_type
+                })
         else:
-            post.media_files = []
+            post.struct_media = []
             
     return render_template('index.html', posts=posts)
 
