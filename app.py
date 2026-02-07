@@ -21,7 +21,7 @@ def allowed_file(filename):
 posts_db = [
     {
         'id': 1,
-        'title': 'ยินดีต้อนรับสู่ Webboard!',
+        'title': 'ยินดีต้อนรับสู่ Webboard555!',
         'author': 'Admin',
         'content': 'ตอนนี้ระบบรองรับการอัปโหลดหลายรูปแล้วนะ ลองกดดูสิ!',
         'media_list': [], # เป็นลิสต์ว่างไว้ก่อน
