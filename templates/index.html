@@ -107,9 +107,10 @@
 
                         {% for media_path in post.media_files %}
                         <div class="carousel-slide {% if loop.index0 == 0 %}active{% endif %}">
-                            {% if media_path.lower().endswith(('.mp4', '.mov', '.avi')) %}
-                                <video controls>
+                            {% if media_path.lower().endswith('.mp4') or media_path.lower().endswith('.mov') or media_path.lower().endswith('.avi') %}
+                                <video controls preload="metadata" style="max-height: 400px; width: 100%;">
                                     <source src="{{ url_for('static', filename=media_path) }}" type="video/mp4">
+                                    Browser ของคุณไม่รองรับวิดีโอ
                                 </video>
                             {% else %}
                                 <img src="{{ url_for('static', filename=media_path) }}" 
