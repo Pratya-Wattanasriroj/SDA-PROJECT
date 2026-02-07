@@ -1,108 +1,153 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash # สำหรับเข้ารหัสรหัสผ่าน
+from flask_sqlalchemy import SQLAlchemy # ฐานข้อมูล
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user # ระบบล็อกอิน
 
 app = Flask(__name__)
 
-# --- ตั้งค่าโฟลเดอร์สำหรับเก็บไฟล์ ---
-UPLOAD_FOLDER = 'static/uploads'
+# --- ตั้งค่า Config ---
+app.secret_key = 'super_secret_key_change_this' # จำเป็นมากสำหรับ Login Session
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db' # สร้างไฟล์ DB ชื่อ database.db
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# สร้างตัวจัดการ
+db = SQLAlchemy(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login' # ถ้ายังไม่ล็อกอิน ให้ดีดไปหน้า login
+
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mov', 'avi'}
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True) # สร้างโฟลเดอร์อัตโนมัติถ้ายังไม่มี
+# --- สร้างตาราง Database (Model) ---
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False) # เก็บแบบ Hash
 
-# ฟังก์ชันตรวจสอบนามสกุลไฟล์
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    author = db.Column(db.String(100), nullable=False) # เก็บชื่อคนโพสต์
+    media_list = db.Column(db.Text, nullable=True) # เก็บ Path ไฟล์ (แปลงเป็น String)
+    timestamp = db.Column(db.String(50), nullable=False)
+
+# สร้าง Database จริงๆ
+with app.app_context():
+    db.create_all()
+
+# ฟังก์ชันโหลด User (Flask-Login ต้องการ)
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# ฟังก์ชันตรวจสอบไฟล์
 def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# --- จำลอง Database (ปรับให้รองรับ media_list) ---
-posts_db = [
-    {
-        'id': 1,
-        'title': 'ยินดีต้อนรับสู่ Webboard555!',
-        'author': 'Admin',
-        'content': 'ตอนนี้ระบบรองรับการอัปโหลดหลายรูปแล้วนะ ลองกดดูสิ!',
-        'media_list': [], # เป็นลิสต์ว่างไว้ก่อน
-        'timestamp': '01/01/2026 12:00'
-    }
-]
+# --- Routes ---
 
 @app.route('/')
 def home():
-    query = request.args.get('q')
-    if query:
-        # ระบบค้นหา
-        filtered_posts = [p for p in posts_db if query.lower() in p['title'].lower() or query.lower() in p['content'].lower()]
-        posts_to_show = filtered_posts
-    else:
-        posts_to_show = posts_db
+    # ดึงข้อมูลจาก Database แทน List
+    posts = Post.query.order_by(Post.id.desc()).all()
     
-    # ส่งข้อมูลไปหน้าเว็บ (เรียงจากใหม่ไปเก่า)
-    return render_template('index.html', posts=reversed(posts_to_show))
+    # แปลง media_list กลับเป็น List (เพราะใน DB เก็บเป็น String ยาวๆ)
+    for post in posts:
+        if post.media_list:
+            post.media_files = post.media_list.split(',')
+        else:
+            post.media_files = []
+            
+    return render_template('index.html', posts=posts)
 
-@app.route('/friends')
-def friends_page():
-    # หน้าเพื่อน (ยังไม่มีข้อมูล)
-    return render_template('index.html', posts=[])
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        # เช็คว่าชื่อซ้ำไหม
+        if User.query.filter_by(username=username).first():
+            flash('ชื่อนี้มีคนใช้แล้วครับ เปลี่ยนใหม่นะ')
+            return redirect(url_for('register'))
+        
+        # เข้ารหัสรหัสผ่าน (เพื่อความปลอดภัย)
+        hashed_pw = generate_password_hash(password, method='scrypt')
+        
+        # บันทึกลง DB
+        new_user = User(username=username, password=hashed_pw)
+        db.session.add(new_user)
+        db.session.commit()
+        
+        flash('สมัครสมาชิกสำเร็จ! ล็อกอินได้เลย')
+        return redirect(url_for('login'))
+        
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        user = User.query.filter_by(username=username).first()
+        
+        # เช็คว่ามี user นี้ และรหัสผ่านถูกต้อง
+        if user and check_password_hash(user.password, password):
+            login_user(user) # สั่งล็อกอิน
+            return redirect(url_for('home'))
+        else:
+            flash('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')
+            
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required # ต้องล็อกอินก่อนถึงจะกดได้
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
 
 @app.route('/create', methods=['GET', 'POST'])
+@login_required # บังคับล็อกอินถึงจะโพสต์ได้!
 def create_post():
     if request.method == 'POST':
         title = request.form['title']
-        author = request.form['author']
         content = request.form['content']
+        # ไม่ต้องรับชื่อจากฟอร์มแล้ว ใช้ชื่อคนล็อกอินเลย
+        author = current_user.username 
         
-        # --- ส่วนจัดการไฟล์ (รองรับหลายไฟล์) ---
-        media_list = []
-        
-        # ตรวจสอบว่ามีการส่งไฟล์มาหรือไม่
+        media_paths = []
         if 'file' in request.files:
-            files = request.files.getlist('file') # รับไฟล์ทั้งหมดเป็น List
-            
+            files = request.files.getlist('file')
             for file in files:
-                # เช็คว่าไฟล์มีชื่อและนามสกุลถูกต้อง
-                if file and file.filename != '' and allowed_file(file.filename):
+                if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
-                    # บันทึกไฟล์
                     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                    
-                    # เช็คว่าเป็นวิดีโอหรือไม่
-                    m_type = 'image'
-                    if filename.lower().endswith(('.mp4', '.mov', '.avi')):
-                        m_type = 'video'
-                    
-                    # เพิ่มข้อมูลไฟล์ลงใน List
-                    media_list.append({
-                        'filename': f'uploads/{filename}',
-                        'type': m_type
-                    })
+                    media_paths.append(f'uploads/{filename}')
+        
+        # รวม Path ไฟล์เป็น String คั่นด้วยจุลภาค (ง่ายต่อการเก็บใน SQLite)
+        media_string = ",".join(media_paths)
 
-        # --- จัดการเวลา (Timezone ไทย) ---
         thai_time = datetime.utcnow() + timedelta(hours=7)
         formatted_time = thai_time.strftime("%d/%m/%Y %H:%M")
 
-        # สร้างโพสต์ใหม่
-        new_post = {
-            'id': len(posts_db) + 1,
-            'title': title,
-            'author': author,
-            'content': content,
-            'media_list': media_list, # เก็บเป็น List
-            'timestamp': formatted_time
-        }
-        
-        posts_db.append(new_post)
+        # บันทึกลง DB
+        new_post = Post(title=title, content=content, author=author, media_list=media_string, timestamp=formatted_time)
+        db.session.add(new_post)
+        db.session.commit()
+
         return redirect(url_for('home'))
-        
     return render_template('create.html')
 
 @app.route('/status')
 def status_check():
-    # ลิงก์ Cloud Function ของคุณ
-    CLOUD_FUNCTION_URL = "https://check-status-final-88358153370.asia-southeast1.run.app"
-    return redirect(CLOUD_FUNCTION_URL)
+    return redirect("https://check-status-final-88358153370.asia-southeast1.run.app") # ใส่ Link เดิมของคุณ
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)

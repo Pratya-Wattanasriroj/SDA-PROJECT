@@ -1,1 +1,6 @@
 Flask
+
+werkzeug
+google-cloud-pubsub
+flask-login
+flask-sqlalchemy
