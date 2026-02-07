@@ -117,11 +117,20 @@
                 <input type="text" name="q" class="search-input" placeholder="ค้นหา..." value="{{ request.args.get('q', '') }}">
             </form>
         </div>
-        <div class="nav-right">
+<div class="nav-right">
             <a href="/status" target="_blank" style="color: #0079d3;"><i class="fas fa-bolt"></i> System</a>
-            <a href="/create" class="btn-create"><i class="fas fa-plus"></i> Create</a>
+            
+            {% if current_user.is_authenticated %}
+                <span style="font-weight: bold; color: #1c1c1c; margin: 0 5px;">
+                    👤 {{ current_user.username }}
+                </span>
+                <a href="/logout" style="color: #ff4500; font-size: 12px; border: 1px solid #ff4500; padding: 4px 10px; border-radius: 20px;">Logout</a>
+                <a href="/create" class="btn-create"><i class="fas fa-plus"></i> Create</a>
+            {% else %}
+                <a href="/login" class="btn-login" style="background: white; color: #0079d3; border: 1px solid #0079d3; padding: 5px 15px; border-radius: 20px;">Log In</a>
+                <a href="/register" class="btn-create">Sign Up</a>
+            {% endif %}
         </div>
-    </nav>
 
     <div class="main-layout">
         <aside class="sidebar">
