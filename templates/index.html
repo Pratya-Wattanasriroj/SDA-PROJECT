@@ -6,46 +6,32 @@
     <title>Community Board</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* --- CSS หลัก --- */
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #dae0e6; margin: 0; padding-top: 48px; color: #1c1c1c; }
         
+        /* Navbar */
         .navbar { background-color: white; height: 48px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); z-index: 1000; }
         .logo { font-size: 20px; color: #ff4500; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px; }
         .nav-search { flex-grow: 1; max-width: 600px; margin: 0 20px; }
         .search-input { width: 100%; background: #f6f7f8; border: 1px solid #edeff1; border-radius: 20px; padding: 8px 15px; outline: none; }
-        .nav-right a { margin-left: 10px; text-decoration: none; font-weight: bold; font-size: 14px; }
+        
+        /* Nav Right */
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+        .nav-right a { text-decoration: none; font-weight: bold; font-size: 14px; }
         .btn-create { background: #1c1c1c; color: white; padding: 6px 15px; border-radius: 20px; }
+        .btn-login { background: white; color: #0079d3; border: 1px solid #0079d3; padding: 5px 15px; border-radius: 20px; }
+        .btn-login:hover { background: #f5fafd; }
         
-        .main-layout { 
-            display: flex; 
-            width: 100%;
-            max-width: 100%;    
-            margin: 0;
-            padding: 20px; 
-            gap: 24px; 
-            box-sizing: border-box;
-        }
-
-        .sidebar { 
-            width: 220px; 
-            min-width: 220px;
-            display: none; 
-            position: sticky; 
-            top: 70px; 
-            height: fit-content;
-        }
-        
+        /* Layout */
+        .main-layout { display: flex; max-width: 1000px; margin: 0 auto; padding: 20px; gap: 24px; }
+        .sidebar { width: 220px; display: none; }
         @media (min-width: 900px) { .sidebar { display: block; } }
-        
         .menu-item { display: flex; align-items: center; gap: 12px; padding: 10px; color: #1c1c1c; text-decoration: none; border-radius: 5px; font-size: 14px; }
         .menu-item:hover { background-color: #e4e6eb; }
         .menu-item.active { background-color: #f6f7f8; font-weight: bold; border-left: 3px solid #ff4500; }
         
-        .content-area { 
-            flex-grow: 1; 
-            min-width: 0; 
-            max-width: 700px;
-        }
-
+        /* Content */
+        .content-area { flex-grow: 1; min-width: 0; }
         .post-card { background: white; border: 1px solid #ccc; margin-bottom: 10px; border-radius: 4px; overflow: hidden; }
         .post-main { padding: 10px 15px; width: 100%; box-sizing: border-box; }
         .post-header { font-size: 12px; color: #787c7e; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
@@ -56,72 +42,16 @@
         .footer-btn { padding: 5px 8px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         .footer-btn:hover { background: #f0f2f5; border-radius: 2px; }
 
-        .carousel-container {
-            position: relative;
-            background: #000;
-            width: 100%;
-            height: 400px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-
-        .carousel-slide {
-            display: none;
-            width: 100%;
-            height: 100%;
-            text-align: center;
-        }
-        
-        .carousel-slide.active {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .carousel-slide img, .carousel-slide video {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-
-        .prev-btn, .next-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(255, 255, 255, 0.8);
-            color: #1c1c1c;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 18px;
-            cursor: pointer;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0.6;
-            transition: 0.2s;
-        }
+        /* --- CSS สำหรับ Gallery Slider (Carousel) --- */
+        .carousel-container { position: relative; background: #000; width: 100%; height: 400px; display: flex; align-items: center; justify-content: center; border-radius: 4px; overflow: hidden; margin-top: 10px; }
+        .carousel-slide { display: none; width: 100%; height: 100%; text-align: center; }
+        .carousel-slide.active { display: flex; justify-content: center; align-items: center; }
+        .carousel-slide img, .carousel-slide video { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .prev-btn, .next-btn { position: absolute; top: 50%; transform: translateY(-50%); background-color: rgba(255, 255, 255, 0.8); color: #1c1c1c; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 18px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; opacity: 0.6; transition: 0.2s; }
         .prev-btn:hover, .next-btn:hover { opacity: 1; background: white; }
         .prev-btn { left: 10px; }
         .next-btn { right: 10px; }
-
-        .image-counter {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.6);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-            z-index: 5;
-        }
+        .image-counter { position: absolute; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.6); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; z-index: 5; }
     </style>
 </head>
 <body>
@@ -133,6 +63,7 @@
                 <input type="text" name="q" class="search-input" placeholder="ค้นหา..." value="{{ request.args.get('q', '') }}">
             </form>
         </div>
+        
         <div class="nav-right">
             <a href="/status" target="_blank" style="color: #0079d3;"><i class="fas fa-bolt"></i> System</a>
             
@@ -143,7 +74,7 @@
                 <a href="/logout" style="color: #ff4500; font-size: 12px; border: 1px solid #ff4500; padding: 4px 10px; border-radius: 20px;">Logout</a>
                 <a href="/create" class="btn-create"><i class="fas fa-plus"></i> Create</a>
             {% else %}
-                <a href="/login" class="btn-login" style="background: white; color: #0079d3; border: 1px solid #0079d3; padding: 5px 15px; border-radius: 20px;">Log In</a>
+                <a href="/login" class="btn-login">Log In</a>
                 <a href="/register" class="btn-create">Sign Up</a>
             {% endif %}
         </div>
@@ -152,7 +83,6 @@
     <div class="main-layout">
         <aside class="sidebar">
             <a href="/" class="menu-item active"><i class="fas fa-home"></i> Home</a>
-            <a href="/friends" class="menu-item"><i class="fas fa-user-friends"></i> Friends</a>
         </aside>
 
         <main class="content-area">
@@ -168,21 +98,21 @@
                     <h3>{{ post.title }}</h3>
                     <p>{{ post.content }}</p>
 
-                    {% if post.media_list and post.media_list|length > 0 %}
+                    {% if post.media_files and post.media_files|length > 0 %}
                     <div class="carousel-container" id="carousel-{{ post.id }}">
                         
                         <div class="image-counter">
-                            <span class="current-index">1</span> / {{ post.media_list|length }}
+                            <span class="current-index">1</span> / {{ post.media_files|length }}
                         </div>
 
-                        {% for media in post.media_list %}
+                        {% for media_path in post.media_files %}
                         <div class="carousel-slide {% if loop.index0 == 0 %}active{% endif %}">
-                            {% if media.type == 'video' %}
+                            {% if media_path.lower().endswith(('.mp4', '.mov', '.avi')) %}
                                 <video controls>
-                                    <source src="{{ url_for('static', filename=media.filename) }}" type="video/mp4">
+                                    <source src="{{ url_for('static', filename=media_path) }}" type="video/mp4">
                                 </video>
                             {% else %}
-                                <img src="{{ url_for('static', filename=media.filename) }}" 
+                                <img src="{{ url_for('static', filename=media_path) }}" 
                                      onclick="window.open(this.src, '_blank')" 
                                      style="cursor: zoom-in;" 
                                      title="คลิกเพื่อดูรูปใหญ่">
@@ -190,7 +120,7 @@
                         </div>
                         {% endfor %}
 
-                        {% if post.media_list|length > 1 %}
+                        {% if post.media_files|length > 1 %}
                             <button class="prev-btn" onclick="moveSlide({{ post.id }}, -1)"><i class="fas fa-chevron-left"></i></button>
                             <button class="next-btn" onclick="moveSlide({{ post.id }}, 1)"><i class="fas fa-chevron-right"></i></button>
                         {% endif %}
@@ -210,6 +140,8 @@
     <script>
         function moveSlide(postId, direction) {
             const container = document.getElementById('carousel-' + postId);
+            if (!container) return; // ป้องกัน error
+            
             const slides = container.getElementsByClassName('carousel-slide');
             const counter = container.querySelector('.current-index');
             
@@ -218,7 +150,7 @@
             for (let i = 0; i < slides.length; i++) {
                 if (slides[i].classList.contains('active')) {
                     activeIndex = i;
-                    slides[i].classList.remove('active');
+                    slides[i].classList.remove('active'); 
                     break;
                 }
             }
