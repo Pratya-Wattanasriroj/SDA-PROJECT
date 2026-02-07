@@ -1,4 +1,5 @@
 import os
+import uuid # เพิ่มตัวช่วยตั้งชื่อไฟล์สุ่ม
 from flask import Flask, render_template, request, redirect, url_for, flash
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
@@ -20,6 +21,7 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+# นามสกุลที่อนุญาต
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mov', 'avi', 'webm', 'mkv'}
 
 # Models
@@ -52,7 +54,7 @@ def allowed_file(filename):
 def home():
     posts = Post.query.order_by(Post.id.desc()).all()
     
-    # กำหนดนามสกุลวิดีโอ (เช็คแบบตัวพิมพ์เล็ก)
+    # กำหนดนามสกุลวิดีโอ
     VIDEO_EXTS = {'mp4', 'mov', 'avi', 'webm', 'mkv'}
 
     for post in posts:
@@ -63,15 +65,19 @@ def home():
                 p = p.strip()
                 if not p: continue
                 
-                # Logic เช็คไฟล์แบบชัดเจนที่สุด
-                ext = p.split('.')[-1].lower() # ดึงนามสกุลออกมาเป็นตัวเล็ก
+                # Logic เช็คไฟล์
+                # ดึงนามสกุลจาก path (เช่น uploads/xxxx.mp4 -> mp4)
+                try:
+                    ext = p.split('.')[-1].lower()
+                except:
+                    ext = ""
                 
                 if ext in VIDEO_EXTS:
                     m_type = 'video'
                 else:
                     m_type = 'image'
                 
-                # Print Debug ลง Terminal (ดูตรงจอดำตอนรัน)
+                # Debug
                 print(f"DEBUG: ไฟล์ {p} (นามสกุล {ext}) ==> {m_type}")
 
                 post.struct_media.append({'path': p, 'type': m_type})
@@ -125,11 +131,16 @@ def create_post():
             files = request.files.getlist('file')
             for file in files:
                 if file and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    # บันทึกไฟล์
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                    # เก็บ path แบบ uploads/ชื่อไฟล์.mp4
-                    media_paths.append(f'uploads/{filename}')
+                    # --- [แก้ใหม่ตรงนี้: เปลี่ยนชื่อไฟล์เป็นรหัสสุ่ม] ---
+                    # 1. หานามสกุลเดิม (.mp4)
+                    ext = os.path.splitext(file.filename)[1].lower()
+                    
+                    # 2. ตั้งชื่อใหม่ด้วย UUID (เช่น a1b2c3d4.mp4)
+                    new_filename = f"{uuid.uuid4().hex}{ext}"
+                    
+                    # 3. บันทึก
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], new_filename))
+                    media_paths.append(f'uploads/{new_filename}')
         
         media_string = ",".join(media_paths)
         thai_time = (datetime.utcnow() + timedelta(hours=7)).strftime("%d/%m/%Y %H:%M")
