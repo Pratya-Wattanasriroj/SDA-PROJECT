@@ -113,10 +113,9 @@
                         <strong style="color: #1c1c1c;">{{ post.author }}</strong>
                         
                         {% if current_user.is_authenticated and current_user.username != post.author %}
-                            
-                            {% set target_user = post.author %} <a href="/send_request/{{ post.author }}" class="follow-btn">Action</a>
-                            <span style="font-size:10px; color:#888;">(กดเพื่อ Follow/Unfollow)</span>
-
+                            <a href="/send_request/{{ post.author }}" class="follow-btn" style="text-decoration: none;">
+                                <i class="fas fa-user-plus"></i> Add Friend
+                            </a>
                         {% endif %}
 
                         <span>• {{ post.timestamp }}</span>

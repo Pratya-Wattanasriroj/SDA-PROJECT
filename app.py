@@ -152,15 +152,24 @@ def notifications():
 @login_required
 def accept_request(req_id):
     req = FollowRequest.query.get_or_404(req_id)
+    
+    # ความปลอดภัย: เช็คว่าคำขอนี้ส่งมาหาเราจริงๆ ใช่ไหม
     if req.receiver_id != current_user.id:
         return redirect(url_for('home'))
     
-    # 1. เพิ่มเพื่อน (Sender ได้ Follow เรา)
-    req.sender.followed.append(current_user)
-    # 2. ลบคำขอออกจากระบบ
+    # 1. ให้คนขอ (A) ติดตามเรา (B) -> (A Follow B)
+    if not req.sender.is_following(current_user):
+        req.sender.followed.append(current_user)
+
+    # 2. [ส่วนที่เพิ่ม] ให้เรา (B) ติดตามคนขอ (A) กลับทันที -> (B Follow A)
+    if not current_user.is_following(req.sender):
+        current_user.followed.append(req.sender)
+    
+    # 3. ลบคำขอออกจากระบบ
     db.session.delete(req)
     db.session.commit()
-    flash(f'รับคำขอของ {req.sender.username} แล้ว!')
+    
+    flash(f'คุณกับ {req.sender.username} เป็นเพื่อนกันแล้ว! (ติดตามกันและกัน)')
     return redirect(url_for('notifications'))
 
 @app.route('/reject/<int:req_id>')
