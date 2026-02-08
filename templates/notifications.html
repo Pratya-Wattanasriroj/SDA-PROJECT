@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #dae0e6; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; width: 100%; max-width: 600px; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0; display: flex; align-items: center; gap: 10px; }
+        
+        .req-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f0f0f0; }
+        .req-info { display: flex; align-items: center; gap: 10px; }
+        .user-icon { width: 30px; height: 30px; background: #ff4500; border-radius: 50%; }
+        .username { font-weight: bold; font-size: 16px; }
+        .sub-text { font-size: 12px; color: #888; }
+        
+        .actions { display: flex; gap: 10px; }
+        .accept-btn { background: #0079d3; color: white; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: bold; }
+        .reject-btn { background: #eee; color: #333; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; text-decoration: none; font-size: 14px; }
+        .accept-btn:hover { background: #005fa3; }
+        .reject-btn:hover { background: #ddd; }
+
+        .back-link { display: block; margin-top: 20px; text-align: center; color: #0079d3; text-decoration: none; }
+        .empty-state { text-align: center; padding: 40px; color: #888; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🔔 การแจ้งเตือนคำขอติดตาม</h2>
+        
+        {% if requests %}
+            {% for req in requests %}
+            <div class="req-item">
+                <div class="req-info">
+                    <div class="user-icon"></div>
+                    <div>
+                        <div class="username">{{ req.sender.username }}</div>
+                        <div class="sub-text">ต้องการติดตามคุณ</div>
+                    </div>
+                </div>
+                <div class="actions">
+                    <a href="/accept/{{ req.id }}" class="accept-btn">ยืนยัน (Accept)</a>
+                    <a href="/reject/{{ req.id }}" class="reject-btn">ลบ (Reject)</a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="far fa-bell-slash" style="font-size: 40px; margin-bottom: 10px;"></i>
+                <p>ยังไม่มีคำขอใหม่ในตอนนี้</p>
+            </div>
+        {% endif %}
+
+        <a href="/" class="back-link">← กลับหน้าหลัก</a>
+    </div>
+</body>
+</html>

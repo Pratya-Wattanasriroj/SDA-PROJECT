@@ -23,19 +23,29 @@ login_manager.login_view = 'login'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mov', 'avi', 'webm', 'mkv'}
 
-# --- [ส่วนใหม่ 1] ตารางสำหรับเก็บว่าใครเพื่อนใคร (Association Table) ---
+# --- [ตาราง 1] เก็บความเป็นเพื่อน (Accept แล้ว) ---
 followers = db.Table('followers',
     db.Column('follower_id', db.Integer, db.ForeignKey('user.id')),
     db.Column('followed_id', db.Integer, db.ForeignKey('user.id'))
 )
 
-# --- Models ---
+# --- [ตาราง 2] เก็บคำขอติดตาม (Pending Request) ---
+class FollowRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # เชื่อมโยงเพื่อให้ดึงข้อมูลง่าย
+    sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_requests')
+    receiver = db.relationship('User', foreign_keys=[receiver_id], backref='received_requests')
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
     
-    # [ส่วนใหม่ 2] ความสัมพันธ์เพื่อน (Self-Referencing Many-to-Many)
+    # ความสัมพันธ์เพื่อน (Accept แล้ว)
     followed = db.relationship(
         'User', secondary=followers,
         primaryjoin=(followers.c.follower_id == id),
@@ -43,19 +53,29 @@ class User(UserMixin, db.Model):
         backref=db.backref('followers', lazy='dynamic'), lazy='dynamic'
     )
 
-    # เช็คว่าเป็นเพื่อนกันหรือยัง?
+    # เช็คว่า Follow สำเร็จหรือยัง (เป็นเพื่อนกันยัง)
     def is_following(self, user):
         return self.followed.filter(followers.c.followed_id == user.id).count() > 0
 
-    # สั่งติดตาม
-    def follow(self, user):
-        if not self.is_following(user):
-            self.followed.append(user)
+    # เช็คว่าเคยส่งคำขอไปหรือยัง (Pending)
+    def has_requested(self, user):
+        return FollowRequest.query.filter_by(sender_id=self.id, receiver_id=user.id).first() is not None
 
-    # เลิกติดตาม
+    # ส่งคำขอ (แทนการ Follow ทันที)
+    def send_request(self, user):
+        if not self.is_following(user) and not self.has_requested(user):
+            req = FollowRequest(sender_id=self.id, receiver_id=user.id)
+            db.session.add(req)
+
+    # ยกเลิกคำขอ / หรือเลิกติดตาม
     def unfollow(self, user):
+        # 1. ถ้าเป็นเพื่อนแล้ว -> ลบเพื่อน
         if self.is_following(user):
             self.followed.remove(user)
+        # 2. ถ้าแค่ส่งคำขอไว้ -> ลบคำขอ
+        req = FollowRequest.query.filter_by(sender_id=self.id, receiver_id=user.id).first()
+        if req:
+            db.session.delete(req)
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -98,43 +118,68 @@ def home():
     
     return render_template('index.html', posts=posts)
 
-# --- [ส่วนใหม่ 3] Routes สำหรับระบบเพื่อน ---
+# --- [System] จัดการ Request ---
 
-@app.route('/follow/<username>')
+@app.route('/send_request/<username>')
 @login_required
-def follow(username):
-    user_to_follow = User.query.filter_by(username=username).first()
-    if user_to_follow is None:
-        flash('User not found.')
-        return redirect(url_for('home'))
-    
-    if user_to_follow == current_user:
-        flash('You cannot follow yourself!')
-        return redirect(url_for('home'))
-
-    current_user.follow(user_to_follow)
-    db.session.commit()
-    flash(f'คุณได้ติดตาม {username} แล้ว!')
-    return redirect(request.referrer or url_for('home')) # กลับไปหน้าเดิม
+def send_request(username):
+    target = User.query.filter_by(username=username).first()
+    if target and target != current_user:
+        current_user.send_request(target)
+        db.session.commit()
+        flash(f'ส่งคำขอติดตาม {username} แล้ว รอการตอบรับนะ')
+    return redirect(request.referrer or url_for('home'))
 
 @app.route('/unfollow/<username>')
 @login_required
 def unfollow(username):
-    user_to_unfollow = User.query.filter_by(username=username).first()
-    if user_to_unfollow:
-        current_user.unfollow(user_to_unfollow)
+    target = User.query.filter_by(username=username).first()
+    if target:
+        current_user.unfollow(target)
         db.session.commit()
-        flash(f'เลิกติดตาม {username} แล้ว')
+        flash(f'ยกเลิกการติดตาม/คำขอ {username} เรียบร้อย')
     return redirect(request.referrer or url_for('home'))
+
+# --- [System] Notifications (หน้าแจ้งเตือน) ---
+@app.route('/notifications')
+@login_required
+def notifications():
+    # ดึงคำขอที่มีคนส่งมาหาเรา (receiver = เรา)
+    requests = FollowRequest.query.filter_by(receiver_id=current_user.id).all()
+    return render_template('notifications.html', requests=requests)
+
+@app.route('/accept/<int:req_id>')
+@login_required
+def accept_request(req_id):
+    req = FollowRequest.query.get_or_404(req_id)
+    if req.receiver_id != current_user.id:
+        return redirect(url_for('home'))
+    
+    # 1. เพิ่มเพื่อน (Sender ได้ Follow เรา)
+    req.sender.followed.append(current_user)
+    # 2. ลบคำขอออกจากระบบ
+    db.session.delete(req)
+    db.session.commit()
+    flash(f'รับคำขอของ {req.sender.username} แล้ว!')
+    return redirect(url_for('notifications'))
+
+@app.route('/reject/<int:req_id>')
+@login_required
+def reject_request(req_id):
+    req = FollowRequest.query.get_or_404(req_id)
+    if req.receiver_id == current_user.id:
+        db.session.delete(req)
+        db.session.commit()
+        flash('ปฏิเสธคำขอแล้ว')
+    return redirect(url_for('notifications'))
 
 @app.route('/friends')
 @login_required
 def friends_page():
-    # ดึงรายชื่อคนที่เราติดตาม
     following_list = current_user.followed.all()
     return render_template('friends.html', following_list=following_list)
 
-# ----------------------------------------
+# --- Standard Routes ---
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():

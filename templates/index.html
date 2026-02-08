@@ -13,9 +13,14 @@
         .search-input { width: 100%; background: #f6f7f8; border: 1px solid #edeff1; border-radius: 20px; padding: 8px 15px; outline: none; }
         .nav-right { display: flex; align-items: center; gap: 15px; }
         .nav-right a { text-decoration: none; font-weight: bold; font-size: 14px; }
+        
         .btn-create { background: #1c1c1c; color: white; padding: 6px 15px; border-radius: 20px; }
         .btn-login { background: white; color: #0079d3; border: 1px solid #0079d3; padding: 5px 15px; border-radius: 20px; }
         
+        /* ปุ่ม Notification */
+        .btn-notif { position: relative; color: #1c1c1c; font-size: 18px; margin-right: 5px; }
+        .badge { position: absolute; top: -5px; right: -5px; background: red; color: white; font-size: 10px; padding: 2px 5px; border-radius: 50%; font-weight: bold; }
+
         .main-layout { display: flex; max-width: 1000px; margin: 0 auto; padding: 20px; gap: 24px; }
         .sidebar { width: 220px; display: none; }
         @media (min-width: 900px) { .sidebar { display: block; } }
@@ -26,11 +31,16 @@
         .post-card { background: white; border: 1px solid #ccc; margin-bottom: 10px; border-radius: 4px; overflow: hidden; }
         .post-main { padding: 10px 15px; width: 100%; box-sizing: border-box; }
         
-        /* [แก้ไข] Post Header ให้มีปุ่ม Follow */
         .post-header { font-size: 12px; color: #787c7e; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+        
+        /* สไตล์ปุ่ม Follow ทั้ง 3 แบบ */
         .follow-btn { margin-left: 5px; border: 1px solid #0079d3; color: #0079d3; border-radius: 20px; padding: 2px 8px; font-size: 10px; cursor: pointer; transition: 0.2s; }
         .follow-btn:hover { background: #f5fafd; }
+        
+        .requested-btn { margin-left: 5px; border: 1px solid #888; color: #888; border-radius: 20px; padding: 2px 8px; font-size: 10px; cursor: default; }
+        
         .unfollow-btn { margin-left: 5px; border: 1px solid #ccc; color: #888; border-radius: 20px; padding: 2px 8px; font-size: 10px; cursor: pointer; }
+        .unfollow-btn:hover { border: 1px solid red; color: red; }
 
         .user-icon { width: 20px; height: 20px; border-radius: 50%; background: #0079d3; }
         h3 { margin: 0 0 8px 0; font-size: 18px; color: #222; }
@@ -47,7 +57,6 @@
         .next-btn { right: 10px; }
         .image-counter { position: absolute; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.6); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; z-index: 5; }
         
-        /* Flash Message */
         .flash-msg { background: #d4edda; color: #155724; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #c3e6cb; text-align: center; }
     </style>
 </head>
@@ -61,8 +70,16 @@
             </form>
         </div>
         <div class="nav-right">
-            <a href="/status" target="_blank" style="color: #0079d3;"><i class="fas fa-bolt"></i> System</a>
+            
             {% if current_user.is_authenticated %}
+                <a href="/notifications" class="btn-notif">
+                    <i class="far fa-bell"></i>
+                    {% set req_count = current_user.received_requests|length %}
+                    {% if req_count > 0 %}
+                        <span class="badge">{{ req_count }}</span>
+                    {% endif %}
+                </a>
+
                 <span style="font-weight: bold; color: #1c1c1c; margin: 0 5px;">👤 {{ current_user.username }}</span>
                 <a href="/logout" style="color: #ff4500; font-size: 12px; border: 1px solid #ff4500; padding: 4px 10px; border-radius: 20px;">Logout</a>
                 <a href="/create" class="btn-create"><i class="fas fa-plus"></i> Create</a>
@@ -97,9 +114,10 @@
                         
                         {% if current_user.is_authenticated and current_user.username != post.author %}
                             
-                            <a href="/follow/{{ post.author }}" class="follow-btn" title="ติดตามคนนี้">Follow +</a>
-                            
-                            {% endif %}
+                            {% set target_user = post.author %} <a href="/send_request/{{ post.author }}" class="follow-btn">Action</a>
+                            <span style="font-size:10px; color:#888;">(กดเพื่อ Follow/Unfollow)</span>
+
+                        {% endif %}
 
                         <span>• {{ post.timestamp }}</span>
                     </div>
