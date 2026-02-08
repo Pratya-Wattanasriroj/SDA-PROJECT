@@ -25,7 +25,13 @@
         .content-area { flex-grow: 1; min-width: 0; }
         .post-card { background: white; border: 1px solid #ccc; margin-bottom: 10px; border-radius: 4px; overflow: hidden; }
         .post-main { padding: 10px 15px; width: 100%; box-sizing: border-box; }
+        
+        /* [แก้ไข] Post Header ให้มีปุ่ม Follow */
         .post-header { font-size: 12px; color: #787c7e; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+        .follow-btn { margin-left: 5px; border: 1px solid #0079d3; color: #0079d3; border-radius: 20px; padding: 2px 8px; font-size: 10px; cursor: pointer; transition: 0.2s; }
+        .follow-btn:hover { background: #f5fafd; }
+        .unfollow-btn { margin-left: 5px; border: 1px solid #ccc; color: #888; border-radius: 20px; padding: 2px 8px; font-size: 10px; cursor: pointer; }
+
         .user-icon { width: 20px; height: 20px; border-radius: 50%; background: #0079d3; }
         h3 { margin: 0 0 8px 0; font-size: 18px; color: #222; }
         p { margin: 0; font-size: 14px; line-height: 21px; color: #1c1c1c; margin-bottom: 10px; }
@@ -40,6 +46,9 @@
         .prev-btn { left: 10px; }
         .next-btn { right: 10px; }
         .image-counter { position: absolute; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.6); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; z-index: 5; }
+        
+        /* Flash Message */
+        .flash-msg { background: #d4edda; color: #155724; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #c3e6cb; text-align: center; }
     </style>
 </head>
 <body>
@@ -67,15 +76,31 @@
     <div class="main-layout">
         <aside class="sidebar">
             <a href="/" class="menu-item active"><i class="fas fa-home"></i> Home</a>
+            <a href="/friends" class="menu-item"><i class="fas fa-user-friends"></i> Friends</a>
         </aside>
 
         <main class="content-area">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="flash-msg">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
             {% for post in posts %}
             <div class="post-card">
                 <div class="post-main">
                     <div class="post-header">
                         <div class="user-icon"></div>
                         <strong style="color: #1c1c1c;">{{ post.author }}</strong>
+                        
+                        {% if current_user.is_authenticated and current_user.username != post.author %}
+                            
+                            <a href="/follow/{{ post.author }}" class="follow-btn" title="ติดตามคนนี้">Follow +</a>
+                            
+                            {% endif %}
+
                         <span>• {{ post.timestamp }}</span>
                     </div>
 
@@ -84,29 +109,18 @@
 
                     {% if post.struct_media and post.struct_media|length > 0 %}
                     <div class="carousel-container" id="carousel-{{ post.id }}">
-                        
-                        <div class="image-counter">
-                            <span class="current-index">1</span> / {{ post.struct_media|length }}
-                        </div>
-
+                        <div class="image-counter"><span class="current-index">1</span> / {{ post.struct_media|length }}</div>
                         {% for media in post.struct_media %}
                         <div class="carousel-slide {% if loop.index0 == 0 %}active{% endif %}">
-                            
                             {% if media.type == 'video' %}
                                 <video controls preload="metadata" style="max-height: 400px; width: 100%;">
                                     <source src="{{ url_for('static', filename=media.path) }}" type="video/mp4">
-                                    Your browser does not support the video tag.
                                 </video>
                             {% else %}
-                                <img src="{{ url_for('static', filename=media.path) }}" 
-                                     onclick="window.open(this.src, '_blank')" 
-                                     style="cursor: zoom-in;" 
-                                     title="คลิกเพื่อดูรูปใหญ่">
+                                <img src="{{ url_for('static', filename=media.path) }}" onclick="window.open(this.src, '_blank')" style="cursor: zoom-in;">
                             {% endif %}
-                            
                         </div>
                         {% endfor %}
-
                         {% if post.struct_media|length > 1 %}
                             <button class="prev-btn" data-id="{{ post.id }}" onclick="moveSlide(this.dataset.id, -1)"><i class="fas fa-chevron-left"></i></button>
                             <button class="next-btn" data-id="{{ post.id }}" onclick="moveSlide(this.dataset.id, 1)"><i class="fas fa-chevron-right"></i></button>
@@ -128,27 +142,20 @@
         function moveSlide(postId, direction) {
             const container = document.getElementById('carousel-' + postId);
             if (!container) return; 
-            
             const slides = container.getElementsByClassName('carousel-slide');
             const counter = container.querySelector('.current-index');
-            
             let activeIndex = 0;
             for (let i = 0; i < slides.length; i++) {
                 if (slides[i].classList.contains('active')) {
-                    activeIndex = i;
-                    slides[i].classList.remove('active'); 
-                    break;
+                    activeIndex = i; slides[i].classList.remove('active'); break;
                 }
             }
-
             let newIndex = activeIndex + direction;
             if (newIndex >= slides.length) newIndex = 0;
             if (newIndex < 0) newIndex = slides.length - 1;
-
             slides[newIndex].classList.add('active');
             if(counter) counter.innerText = newIndex + 1;
         }
     </script>
-
 </body>
 </html>

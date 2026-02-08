@@ -1,5 +1,5 @@
 import os
-import uuid # เพิ่มตัวช่วยตั้งชื่อไฟล์สุ่ม
+import uuid
 from flask import Flask, render_template, request, redirect, url_for, flash
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
@@ -21,14 +21,41 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-# นามสกุลที่อนุญาต
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mov', 'avi', 'webm', 'mkv'}
 
-# Models
+# --- [ส่วนใหม่ 1] ตารางสำหรับเก็บว่าใครเพื่อนใคร (Association Table) ---
+followers = db.Table('followers',
+    db.Column('follower_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('followed_id', db.Integer, db.ForeignKey('user.id'))
+)
+
+# --- Models ---
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
+    
+    # [ส่วนใหม่ 2] ความสัมพันธ์เพื่อน (Self-Referencing Many-to-Many)
+    followed = db.relationship(
+        'User', secondary=followers,
+        primaryjoin=(followers.c.follower_id == id),
+        secondaryjoin=(followers.c.followed_id == id),
+        backref=db.backref('followers', lazy='dynamic'), lazy='dynamic'
+    )
+
+    # เช็คว่าเป็นเพื่อนกันหรือยัง?
+    def is_following(self, user):
+        return self.followed.filter(followers.c.followed_id == user.id).count() > 0
+
+    # สั่งติดตาม
+    def follow(self, user):
+        if not self.is_following(user):
+            self.followed.append(user)
+
+    # เลิกติดตาม
+    def unfollow(self, user):
+        if self.is_following(user):
+            self.followed.remove(user)
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -53,8 +80,6 @@ def allowed_file(filename):
 @app.route('/')
 def home():
     posts = Post.query.order_by(Post.id.desc()).all()
-    
-    # กำหนดนามสกุลวิดีโอ
     VIDEO_EXTS = {'mp4', 'mov', 'avi', 'webm', 'mkv'}
 
     for post in posts:
@@ -64,25 +89,52 @@ def home():
             for p in paths:
                 p = p.strip()
                 if not p: continue
-                
-                # Logic เช็คไฟล์
-                # ดึงนามสกุลจาก path (เช่น uploads/xxxx.mp4 -> mp4)
                 try:
                     ext = p.split('.')[-1].lower()
                 except:
                     ext = ""
-                
-                if ext in VIDEO_EXTS:
-                    m_type = 'video'
-                else:
-                    m_type = 'image'
-                
-                # Debug
-                print(f"DEBUG: ไฟล์ {p} (นามสกุล {ext}) ==> {m_type}")
-
+                m_type = 'video' if ext in VIDEO_EXTS else 'image'
                 post.struct_media.append({'path': p, 'type': m_type})
     
     return render_template('index.html', posts=posts)
+
+# --- [ส่วนใหม่ 3] Routes สำหรับระบบเพื่อน ---
+
+@app.route('/follow/<username>')
+@login_required
+def follow(username):
+    user_to_follow = User.query.filter_by(username=username).first()
+    if user_to_follow is None:
+        flash('User not found.')
+        return redirect(url_for('home'))
+    
+    if user_to_follow == current_user:
+        flash('You cannot follow yourself!')
+        return redirect(url_for('home'))
+
+    current_user.follow(user_to_follow)
+    db.session.commit()
+    flash(f'คุณได้ติดตาม {username} แล้ว!')
+    return redirect(request.referrer or url_for('home')) # กลับไปหน้าเดิม
+
+@app.route('/unfollow/<username>')
+@login_required
+def unfollow(username):
+    user_to_unfollow = User.query.filter_by(username=username).first()
+    if user_to_unfollow:
+        current_user.unfollow(user_to_unfollow)
+        db.session.commit()
+        flash(f'เลิกติดตาม {username} แล้ว')
+    return redirect(request.referrer or url_for('home'))
+
+@app.route('/friends')
+@login_required
+def friends_page():
+    # ดึงรายชื่อคนที่เราติดตาม
+    following_list = current_user.followed.all()
+    return render_template('friends.html', following_list=following_list)
+
+# ----------------------------------------
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -131,14 +183,8 @@ def create_post():
             files = request.files.getlist('file')
             for file in files:
                 if file and allowed_file(file.filename):
-                    # --- [แก้ใหม่ตรงนี้: เปลี่ยนชื่อไฟล์เป็นรหัสสุ่ม] ---
-                    # 1. หานามสกุลเดิม (.mp4)
                     ext = os.path.splitext(file.filename)[1].lower()
-                    
-                    # 2. ตั้งชื่อใหม่ด้วย UUID (เช่น a1b2c3d4.mp4)
                     new_filename = f"{uuid.uuid4().hex}{ext}"
-                    
-                    # 3. บันทึก
                     file.save(os.path.join(app.config['UPLOAD_FOLDER'], new_filename))
                     media_paths.append(f'uploads/{new_filename}')
         
